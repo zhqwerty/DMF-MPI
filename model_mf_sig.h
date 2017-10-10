@@ -21,10 +21,10 @@ public:
         _Y = randn<mat>(rank, nCols);
     }
     
-    mat getX() override{
+    mat& getX() override{
         return _X;
     }
-    mat getY() override{
+    mat& getY() override{
         return _Y;
     }
 }
