@@ -9,12 +9,11 @@ public:
 };
 // typedef struct Example Example;
 
-void
-write_binary_examples(struct Example* ex, int nExamples, const char *szFile);
+void write_binary_examples(struct Example* ex, int nExamples, const char *szFile);
 
-Example * 
-load_binary_examples(const char *szExample, int &nRows, int &nCols, int &nExamples);
+Example* load_binary_examples(const char *szExample, int &nRows, int &nCols, int &nExamples);
 
-Example * 
-load_examples(const char *szExample, int &nRows, int &nCols, int &nExamples);
+Example* load_examples(const char *szExample, int &nRows, int &nCols, int &nExamples);
+
+
 #endif

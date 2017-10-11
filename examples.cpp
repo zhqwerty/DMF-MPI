@@ -14,8 +14,7 @@ write_binary_examples(Example* ex, int nExamples, const char *szFile) {
   fclose(f);
 }
 
-Example *
-load_binary_examples(const char *szExample, int &nRows, int &nCols, int &nExamples) {
+Example* load_binary_examples(const char *szExample, int &nRows, int &nCols, int &nExamples) {
   FILE *f = fopen( szExample, "rb");
   // assert(f != NULL);
   assert(fread(&nExamples, sizeof(int), 1, f) == 1);
@@ -34,8 +33,7 @@ load_binary_examples(const char *szExample, int &nRows, int &nCols, int &nExampl
   return ret;
 }
 
-Example * 
-load_examples(const char *szExample, int &nRows, int &nCols, int &nExamples) {
+Example* load_examples(const char *szExample, int &nRows, int &nCols, int &nExamples) {
   vector<Example> rets;
   ifstream f_in;
   int row,col;

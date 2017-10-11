@@ -22,16 +22,14 @@ public:
     Updater(){}
     virtual ~Updater(){}
 
-    virtual void UpdateX(Gradient* gradient, int idx, double learning_rate){
-        mat& X = model->getX();
-        X.row(idx) -= learning_rate * gradient->data;
+    virtual void Update(mat& Xi, mat& Yj, Example* example, double learning_rate, double lambda){
+        mat predict = Xi * Yj;
+        mat gradXi = (predict(0, 0) - example->rating) * Yj.t() + lambda * Xi;
+        Xi -= learning_rate * gradXi;
+        mat gradYj = (predict(0, 0) - example->rating) * Xi.t() + lambda * Yj;
+        Yj -= learning_rate * gradYj;
     }
     
-    virtual void UpdateY(Gradient* gradient, int idx, double learning_rate){
-        mat& Y = model->getY();
-        Y.col(idx) -= learning_rate * gradient->data;
-    }
-
 
 };
 

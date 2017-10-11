@@ -1,4 +1,4 @@
-#ifndef _TRAINER_
+#fndef _TRAINER_
 #define _TRAINER_
 
 #include <iostream>
@@ -13,7 +13,6 @@ class Trainer {
 protected:
     Model* model;
     Example* example;
-    Gradient* gradient;
 
     void TrackOutput(int cur_epoch, double cur_accuracy, double cur_rmse, TrainStatistics* stats){
         stats->epoch.push_back(cur_epoch);
@@ -29,7 +28,6 @@ public:
     Trainer(Model* model, Example* example){
         this->model = model;
         this->example = example;
-        gradient = new Gradient();
     }
     virtual ~Trainer(){}
 

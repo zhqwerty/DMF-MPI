@@ -7,9 +7,11 @@ using namespace arma;
 class Model {
 public:
     int taskid;
+    int lambda;
 
-    Model(int key){
+    Model(int key, int lamb){
         this->taskid = key;
+        this->lambda = lamb;
     };
     virtual ~Model(){};
 
