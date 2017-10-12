@@ -3,10 +3,10 @@
 #include <armadillo>
 #include <math.h>
 #include <mpi.h>
-#include "examples.h"
-#include "tools.h"
-#include "updater.h"
-#include "global_macros.h"
+#include "Example/examples.h"
+#include "Tools/tools.h"
+#include "Updater/updater.h"
+#include "Tools/global_macros.h"
 using namespace arma;
 
 int main(int argv, char *argc[]){
