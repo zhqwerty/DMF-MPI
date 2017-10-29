@@ -1,22 +1,28 @@
-#ifndef _MODEL_
-#define _MODEL_
+#ifndef _MODELMFSIG_
+#define _MODELMFSIG_
 
 #include <armadillo>
 using namespace arma;
 
 class Model {
 public:
-    int taskid;
-    int lambda;
+    mat X;
+    mat Y;
+    int rank;
+    int nRows;
+    int nCols;
+    int nExamples;
+    double lambda;
 
-    Model(int key, int lamb){
-        this->taskid = key;
-        this->lambda = lamb;
-    };
-    virtual ~Model(){};
-
-    virtual mat& getX() = 0;
-    virtual mat& getY() = 0;
+    Model(double lambda, int nRows, int nCols, int nExamples, int rank) {
+        lambda = lambda;
+        rank = rank;
+        nRows = nRows;
+        nCols = nCols;
+        nExamples = nExamples;
+        X = randn<mat>(nRows, rank);
+        Y = randn<mat>(rank, nCols);
+    }
 };
 
 #endif
