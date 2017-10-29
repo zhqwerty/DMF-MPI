@@ -9,8 +9,12 @@
 
 #include "Example/examples.h"
 #include "Model/model.h"
-#include "Model/model_mf_sig.h"
 #include "Updater/updater.h"
-#include "Train/trainer.h"
+#include "Trainer/trainer.h"
+#include "Trainer/worker_trainer.h"
+#include "Trainer/master_trainer.h"
+#include "Tools/tools.h"
+
+
 
 #endif
