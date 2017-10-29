@@ -1,5 +1,10 @@
+#ifndef _TOOLS_
+#define _TOOLS_
+
 #include <chrono>
 #include <iostream>
+#include <armadillo>
+using namespace arma;
 
 class Timer
 {
@@ -23,6 +28,28 @@ public:
     }
 };
 
+template<typename T>
+std::vector<double> mat_2_vec(const T& Matrix){
+  int row = Matrix.n_rows;
+  int col = Matrix.n_cols;
+  std::vector<double> out(row*col, 0);
+  for(int i=0; i<row; i++)
+    for(int j=0; j<col; j++)
+      out[i*col+j] = Matrix(i,j);
+
+  return out;
+}
+
+
+mat vec_2_mat(const std::vector<double>& w, int begin, int row, int col){
+  mat out(row,col); int index = 0;
+    for(int i=0; i<row; i++)
+      for(int j=0; j<col; j++){
+        index = i*col + j;
+        out(i,j) = w[begin+index];
+      }
+  return out;
+}
 
 template <class T>
 void printVec(const std::vector<T> nums){
@@ -30,3 +57,4 @@ void printVec(const std::vector<T> nums){
     std::cout << std::endl;
 }
 
+#endif
