@@ -57,4 +57,14 @@ void printVec(const std::vector<T> nums){
     std::cout << std::endl;
 }
 
+template<typename T>
+T max_element(std::vector<T> vec) {
+  T max_val = vec[0];
+    for(int i = 1; i < vec.size(); i++) {
+      if (max_val < vec[i])
+        max_val = vec[i];
+    }
+  return max_val;
+}
+
 #endif
