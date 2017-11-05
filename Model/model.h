@@ -14,14 +14,14 @@ public:
     int nExamples;
     double lambda;
 
-    Model(double lambda, int nRows, int nCols, int nExamples, int rank) {
-        lambda = lambda;
-        rank = rank;
-        nRows = nRows;
-        nCols = nCols;
-        nExamples = nExamples;
-        X = randn<mat>(nRows, rank);
-        Y = randn<mat>(rank, nCols);
+    Model(double lambda1, int nRows1, int nCols1, int nExamples1, int rank1) {
+        lambda = lambda1;
+        rank = rank1;
+        nRows = nRows1;
+        nCols = nCols1;
+        nExamples = nExamples1;
+        X = randn<mat>(nRows1, rank1);
+        Y = randn<mat>(rank1, nCols1);
     }
 };
 
