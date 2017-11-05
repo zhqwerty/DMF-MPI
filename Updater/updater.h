@@ -29,7 +29,15 @@ public:
         Yj -= learning_rate * gradYj;
     }
     
-
+    virtual void Update_Sig(mat& Xi, mat& Yj, Example* example, double learning_rate, double lambda){
+        mat predict = Xi * Yj;
+        double den = pow(1 + exp(predict(0, 0) * example->rating), 2);
+        mat gradXi = -exp(example->rating * predict(0, 0)) * Yj.t() / den + lambda * Xi;
+        Xi -= learning_rate * gradXi;
+        predict = Xi * Yj;
+        mat gradYj = -exp(example->rating * predict(0, 0)) * Xi.t() / den + lambda * Yj;
+        Yj -= learning_rate * gradYj;
+    }
 };
 
 void update(Example* trainData, int nExamples, mat& X, mat& Y, double learningRate, double lambda){
