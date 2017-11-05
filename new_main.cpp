@@ -38,7 +38,7 @@ int main(int argv, char *argc[]){
     Updater* updater = new Updater(model, trainData);
     Trainer* trainer = NULL;
     if (taskid == 0) {
-        trainer = new MasterTrainer(model, trainData, testData);
+        trainer = new MasterTrainer(model, trainData, testData, testExamples);
     }
     else {
         trainer = new WorkerTrainer(model, trainData);
