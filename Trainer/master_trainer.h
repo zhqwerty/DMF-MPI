@@ -11,7 +11,7 @@ using namespace arma;
 
 class MasterTrainer : public Trainer {
 public:
-    int FLAGS_n_epochs = 2e4;
+    int FLAGS_n_epochs = 2e1;
     int FLAGS_in_iters = 1;
     int FLAGS_num_workers = 3;
     int FLAGS_group_size = 1;
@@ -32,7 +32,6 @@ public:
         Model& master_model = *model;
         // Train.
         for (int epoch = 0; epoch <= FLAGS_n_epochs; epoch++){
-            srand(epoch);
             double learning_rate = 10 / std::pow(1+epoch, 0.1);
             //std::cout << "Epoch: " << epoch << std::endl;
             //std::cout << "master learning-rate: " << learning_rate << std::endl;
@@ -75,31 +74,28 @@ public:
                     //printf("master send down\n");
                 }
                 
-                // Receive information(Xi, Yj, idx) and update(assign)
-                std::vector<double> updated_Xi_Yj(model->rank * 2 + 1, 0);
+                // Receive info(Xi, Yj, idx) and update(assign)
+                std::vector<double> info(model->rank * 2 + 1, 0);
                 bool flag_receive = true;
                 while (flag_receive){
                     MPI_Probe(MPI_ANY_SOURCE, 101, MPI_COMM_WORLD, &status);    
                     int taskid = status.MPI_SOURCE;
                     //for (int i = 0; i < FLAGS_num_workers; i++){
                         //printf("master receive from worker %d \n", taskid);
-                        MPI_Recv(&updated_Xi_Yj[0], model->rank * 2 + 1, MPI_DOUBLE, taskid, 101, MPI_COMM_WORLD, &status);
+                        MPI_Recv(&info[0], model->rank * 2 + 1, MPI_DOUBLE, taskid, 101, MPI_COMM_WORLD, &status);
                         // Prase updaterd_Xi_Yj(Xi, Yj, idx);
                         // convert vector to mat
-                        std::vector<double> tmp_xi(updated_Xi_Yj.begin(), updated_Xi_Yj.begin() + model->rank);
-                        std::vector<double> tmp_yj(updated_Xi_Yj.begin() + model->rank, updated_Xi_Yj.begin() + model->rank * 2);
-                        //std::cout << "xi : ";
-                        //printVec(tmp_xi);
+                        std::vector<double> tmp_xi(info.begin(), info.begin() + model->rank);
+                        std::vector<double> tmp_yj(info.begin() + model->rank, info.begin() + model->rank * 2);
                         mat Xi = vec_2_mat(tmp_xi, 0, 1, model->rank);
                         mat Yj = vec_2_mat(tmp_yj, 0, model->rank, 1);
-                        int idx = *(updated_Xi_Yj.end() - 1);
+                        int idx = *(info.end() - 1);
                     
                         // update Xi, Yj in model
                         int row = trainData[idx].row;
                         int col = trainData[idx].col;
                         master_model.X.row(row) = Xi;
                         master_model.Y.col(col) = Yj;
-                    
                         cur_worker_size += 1;
                         //delay_counter[taskid - 1] = 1;
                         //cur_received_workers[taskid - 1] = 1;
@@ -118,7 +114,10 @@ public:
                 int trueNum = 0;
                 long double error = 0;
                 for (int i = 0; i < testExamples; i++){
-                    mat predict = master_model.X.row(testData[i].row) * master_model.Y.col(testData[i].col);
+                    mat xi = master_model.X.row(testData[i].row);
+                    mat yj = master_model.Y.col(testData[i].col);
+                    //xi.print("test xi: ");
+                    mat predict = xi * yj;
                     if ( predict(0, 0) * testData[i].rating > 0 ) trueNum++;
                     error += pow(predict(0, 0) - testData[i].rating, 2);
                 }
