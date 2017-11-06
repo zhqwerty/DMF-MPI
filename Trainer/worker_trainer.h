@@ -10,10 +10,10 @@ using namespace arma;
 
 class WorkerTrainer : public Trainer {
 public:
-    WorkerTrainer(Model* model, Example* example) : Trainer(model, example){}
+    WorkerTrainer(Model* model, Example* trainData) : Trainer(model, trainData){}
     ~WorkerTrainer(){}
     
-    TrainStatistics Train(Model* model, Example* example, Updater* updater) override {
+    TrainStatistics Train(Model* model, Example* trainData, Updater* updater) override {
         TrainStatistics stats;
         //std::cout << "worker_trainer running... " <<  std::endl;
         double flag_epoch = 0;
@@ -36,22 +36,20 @@ public:
             // Prase message
             std::vector<double> tmp_xi(message.begin(), message.begin() + model->rank);
             std::vector<double> tmp_yj(message.begin() + model->rank, message.begin() + 2 * model->rank);
-            //std::cout << "worker 22222222" << std::endl;
+            
             mat Xi = vec_2_mat(tmp_xi, 0, 1, model->rank);
             mat Yj = vec_2_mat(tmp_yj, 0, model->rank, 1);
-            //std::cout << "worker 33333333" << std::endl;
+            
             int idx = *(message.end() - 4);
             double learning_rate = *(message.end() - 3);
             flag_epoch = *(message.end() - 2);
             flag_break = *(message.end() - 1);
 
             // Update Xi and Yj
-            updater->Update_Sig(Xi, Yj, &example[idx], learning_rate, model->lambda);
+            updater->Update_Sig(Xi, Yj, &trainData[idx], learning_rate, model->lambda);
 
             tmp_xi = mat_2_vec(Xi);
             tmp_yj = mat_2_vec(Yj);
-            //std::cout << "Xi :";
-            //printVec(tmp_xi);
             
             // Send (Xi, Yj, idx)
             tmp_xi.insert(tmp_xi.end(), tmp_yj.begin(), tmp_yj.end());
