@@ -32,7 +32,7 @@ int main(int argv, char *argc[]){
      
    
     double lambda = 1e-1;
-    int rank = 20;
+    int rank = 10;
 
     Model* model = new Model(lambda, nRows, nCols, nExamples, rank);
     Updater* updater = new Updater(model, trainData);
