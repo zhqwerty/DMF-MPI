@@ -30,9 +30,10 @@ public:
             if (flag_break){
                 break;
             }
-            //std::cout << "worker receive from master" << std::endl;
+            // std::cout << "worker receive from master" << std::endl;
             MPI_Recv(&message[0], model->rank * 2 + 4, MPI_DOUBLE, 0, 102, MPI_COMM_WORLD, &status);
-            //std::cout << "worker receive down" << std::endl;
+            // std::cout << "worker receive down" << std::endl;
+          
             // Prase message
             std::vector<double> tmp_xi(message.begin(), message.begin() + model->rank);
             std::vector<double> tmp_yj(message.begin() + model->rank, message.begin() + 2 * model->rank);
@@ -54,9 +55,9 @@ public:
             // Send (Xi, Yj, idx)
             tmp_xi.insert(tmp_xi.end(), tmp_yj.begin(), tmp_yj.end());
             tmp_xi.push_back(idx);
-            //std::cout << "worker send to master" << std::endl;
+            // std::cout << "worker send to master" << std::endl;
             MPI_Send(&tmp_xi[0], model->rank * 2 + 1, MPI_DOUBLE, 0, 101, MPI_COMM_WORLD);
-            //std::cout << "worker send down" << std::endl;
+            // std::cout << "worker send down" << std::endl;
 
         }
         return stats;
