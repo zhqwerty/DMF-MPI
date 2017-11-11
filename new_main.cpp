@@ -26,13 +26,14 @@ int main(int argv, char *argc[]){
     Example* trainData = load_examples(inputTrainFile, nRows, nCols, nExamples);
     Example* testData = load_examples(inputTestFile, testRows, testCols, testExamples);
     
-    std::cout << "nRows: " << nRows  << " nCols: " << nCols << " nExamples: " << nExamples << std::endl;
-    std::cout << "testRows: " << testRows  << " testCols: " << testCols << " testExamples: " << testExamples << std::endl;
-//    for (int i = 0; i < 10; i++) std::cout << trainData[i].row << " " << trainData[i].col << " " << trainData[i].rating << std::endl;
-     
+    if (taskid == 0){
+        std::cout << "nRows: " << nRows  << " nCols: " << nCols << " nExamples: " << nExamples << std::endl;
+        std::cout << "testRows: " << testRows  << " testCols: " << testCols << " testExamples: " << testExamples << std::endl;
+        //    for (int i = 0; i < 10; i++) std::cout << trainData[i].row << " " << trainData[i].col << " " << trainData[i].rating << std::endl;
+    }
    
     double lambda = 1e-1;
-    int rank = 10;
+    int rank = 30;
 
     Model* model = new Model(lambda, nRows, nCols, nExamples, rank);
     Updater* updater = new Updater(model, trainData);
