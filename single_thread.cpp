@@ -12,15 +12,12 @@ using namespace arma;
 
 int main(int argv, char *argc[]){
     const char* inputFile = "/Users/ZMY/data/Slashdot/slashdot.txt";
-  //  const char* inputTestFile = "/Users/ZMY/data/Slashdot/test.txt";
     int nRows, nCols, nExamples;
-  //  int testRows, testCols, testExamples;
     Example* examples = load_examples(inputFile, nRows, nCols, nExamples);
-  //  Example* testData = load_examples(inputTestFile, testRows, testCols, testExamples);
     
     std::cout << "nRows: " << nRows  << " nCols: " << nCols << " nExamples: " << nExamples << std::endl;
  //   std::cout << "testRows: " << testRows  << " testCols: " << testCols << " testExamples: " << testExamples << std::endl;
-//    for (int i = 0; i < 10; i++) std::cout << trainData[i].row << " " << trainData[i].col << " " << trainData[i].rating << std::endl;
+//    for (int i = 0; i < nExamples; i++) std::cout << examples[i].row << " " << examples[i].col << " " << examples[i].rating << std::endl;
     
     int rank = 20;
     double sample_rate = 0.9;
@@ -36,7 +33,7 @@ int main(int argv, char *argc[]){
 
     // Variables Update
     int maxIter = 1e5;   
-    int maxEpoch = 20;
+    int maxEpoch = 40;
     double learning_rate = 1;
     std::vector<double> acc;
     std::vector<double> rmse;
@@ -54,9 +51,10 @@ int main(int argv, char *argc[]){
         int trueNum = 0;
         long double error = 0;
         for (int i = int(nExamples * sample_rate) + 1; i < nExamples; i++){
-            mat predict = X.row(examples[sample[i]].row) * Y.col(examples[sample[i]].col);
-            if ( predict(0, 0) * examples[sample[i]].rating > 0 ) trueNum++;
-            error += pow(predict(0, 0) - examples[sample[i]].rating, 2);
+            int pick = sample[i]; 
+            mat predict = X.row(examples[pick].row) * Y.col(examples[pick].col);
+            if ( sign(predict(0, 0)) == sign(examples[pick].rating) ) trueNum++;
+            error += pow(predict(0, 0) - examples[pick].rating, 2);
         }
         int testExamples = nExamples * (1 - sample_rate);
         acc.push_back(double(trueNum) / testExamples);
