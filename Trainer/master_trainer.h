@@ -11,9 +11,9 @@ using namespace arma;
 
 class MasterTrainer : public Trainer {
 public:
-    int FLAGS_n_epochs = 20;
+    int FLAGS_n_epochs = 30;
     int FLAGS_in_iters = 1e5;
-    int FLAGS_num_workers = 5;
+    int FLAGS_num_workers = 3;
     bool FLAGS_Asy = false;
     int testExamples;
     Example* testData;
@@ -29,12 +29,18 @@ public:
 
         Model& master_model = *model;
         // Train.
+        int flag_asy = FLAGS_Asy ? 1 : 0;
+        printf("Number of Workers: %d,   FLAGS_Asy: %d\n", FLAGS_num_workers, flag_asy);
+        std::cout << "Start Training" << std::endl;
+        Timer timer;
+        timer.Tick();
         for (int epoch = 0; epoch < FLAGS_n_epochs; epoch++){
-            double learning_rate = 0.1 / std::pow(1+epoch, 0.1);
+            double step = FLAGS_Asy ? 0.01 : 1;
+            double learning_rate = step / std::pow(1+epoch, 0.1);
             //std::cout << "Epoch: " << epoch << std::endl;
 
             for(int iter_counter = 0; iter_counter < FLAGS_in_iters; iter_counter++){
-                // build message : Xi, Yj, idx, learning_rate, flag_epoch, flag_break
+                // build message : Xi, Yj, idx, flag_break
                 for (int i = 1; i <= FLAGS_num_workers; i++){
                     std::vector<double> message;
                     int idx = rand() % model->nExamples;
@@ -47,26 +53,22 @@ public:
                     message.assign(tmp_xi.begin(), tmp_xi.end()); // Xi
                     message.insert(message.end(), tmp_yj.begin(), tmp_yj.end()); // Yj
                     message.push_back(idx); // idx;
-                    message.push_back(learning_rate); // learning_rate
                     if (iter_counter < FLAGS_in_iters - 1) {
-                        message.push_back(0);
                         message.push_back(0);
                     }
                     else if(epoch < FLAGS_n_epochs - 1) {
-                        message.push_back(1);
                         message.push_back(0);
                     }
                     else {
                         message.push_back(1);
-                        message.push_back(1);
                     }
                     // send messages to workers
                     // printf("master send message to worker %d \n", i);
-                    MPI_Send(&message[0], model->rank * 2 + 4, MPI_DOUBLE, i, 102, MPI_COMM_WORLD);
+                    MPI_Send(&message[0], model->rank * 2 + 2, MPI_DOUBLE, i, 102, MPI_COMM_WORLD);
                     // printf("master send down\n");
                 }
                 
-                // Receive info(Xi, Yj, idx) and update(assign)
+                // Receive info(gradXi, gradYj, idx) and update(ApplyGradient)
                 std::vector<double> info(model->rank * 2 + 1, 0);
                 if (FLAGS_Asy){
                     // printf("master start to receive\n");
@@ -78,17 +80,17 @@ public:
                     
                     // Prase updaterd_Xi_Yj(Xi, Yj, idx);
                     // convert vector to mat
-                    std::vector<double> tmp_xi(info.begin(), info.begin() + model->rank);
-                    std::vector<double> tmp_yj(info.begin() + model->rank, info.begin() + model->rank * 2);
-                    mat Xi = vec_2_mat(tmp_xi, 0, 1, model->rank);
-                    mat Yj = vec_2_mat(tmp_yj, 0, model->rank, 1);
+                    std::vector<double> gradXi_tmp(info.begin(), info.begin() + model->rank);
+                    std::vector<double> gradYj_tmp(info.begin() + model->rank, info.begin() + model->rank * 2);
+                    mat gradXi = vec_2_mat(gradXi_tmp, 0, 1, model->rank);
+                    mat gradYj = vec_2_mat(gradYj_tmp, 0, model->rank, 1);
                     int idx = *(info.end() - 1);
                     
                     // update Xi, Yj in model
                     int row = trainData[idx].row;
                     int col = trainData[idx].col;
-                    master_model.X.row(row) = Xi;
-                    master_model.Y.col(col) = Yj;
+
+                    updater->ApplyGradient(master_model, row, col, gradXi, gradYj, learning_rate);
                 }
                 else{
                     for (int iter = 0; iter < FLAGS_num_workers; iter++){
@@ -98,20 +100,18 @@ public:
                         // printf("master receive from worker %d \n", taskid);
                         MPI_Recv(&info[0], model->rank * 2 + 1, MPI_DOUBLE, taskid, 101, MPI_COMM_WORLD, &status);
                         // printf("master receice down\n");
-                
-                        // Prase updaterd_Xi_Yj(Xi, Yj, idx);
-                        // convert vector to mat
-                        std::vector<double> tmp_xi(info.begin(), info.begin() + model->rank);
-                        std::vector<double> tmp_yj(info.begin() + model->rank, info.begin() + model->rank * 2);
-                        mat Xi = vec_2_mat(tmp_xi, 0, 1, model->rank);
-                        mat Yj = vec_2_mat(tmp_yj, 0, model->rank, 1);
+
+                        std::vector<double> gradXi_tmp(info.begin(), info.begin() + model->rank);
+                        std::vector<double> gradYj_tmp(info.begin() + model->rank, info.begin() + model->rank * 2);
+                        mat gradXi = vec_2_mat(gradXi_tmp, 0, 1, model->rank);
+                        mat gradYj = vec_2_mat(gradYj_tmp, 0, model->rank, 1);
                         int idx = *(info.end() - 1);
                     
                         // update Xi, Yj in model
                         int row = trainData[idx].row;
                         int col = trainData[idx].col;
-                        master_model.X.row(row) = Xi;
-                        master_model.Y.col(col) = Yj;
+
+                        updater->ApplyGradient(master_model, row, col, gradXi, gradYj, learning_rate);
                     }
                 }
             }
@@ -123,17 +123,17 @@ public:
                 mat yj = master_model.Y.col(testData[i].col);
                 //xi.print("test xi: ");
                 mat predict = xi * yj;
-                if ( predict(0, 0) * testData[i].rating > 0 ) trueNum++;
+                if ( sign(predict(0, 0)) == sign(testData[i].rating)) trueNum++;
                 error += pow(predict(0, 0) - testData[i].rating, 2);
             }
             double acc = double(trueNum) / testExamples;
             double rmse = sqrt(error / testExamples);
             TrackOutput(epoch + 1, acc, rmse, &stats);
-            PrintOutput(epoch + 1, acc, rmse);
+            timer.Tock();
+            PrintOutput(epoch + 1, acc, rmse, timer.duration);
         }
         return stats;
     }
-
 };
 
 #endif
