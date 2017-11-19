@@ -67,4 +67,10 @@ T max_element(std::vector<T> vec) {
   return max_val;
 }
 
+template<class T>
+int sign(T x){
+    if (x == 0) return 0;
+    return x > 0 ? 1 : -1;
+}
+
 #endif
