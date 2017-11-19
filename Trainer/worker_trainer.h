@@ -39,7 +39,7 @@ public:
 
             // Calculate Gradient
             std::pair<mat, mat> gradient;
-            gradient = updater->CalGradient(Xi, Yj);
+            gradient = updater->CalGradient(Xi, Yj, idx);
 
             std::vector<double> gradXi = mat_2_vec(gradient.first);
             std::vector<double> gradYj = mat_2_vec(gradient.second);
