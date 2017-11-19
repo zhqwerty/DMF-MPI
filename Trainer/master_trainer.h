@@ -53,30 +53,19 @@ public:
                     message.assign(tmp_xi.begin(), tmp_xi.end()); // Xi
                     message.insert(message.end(), tmp_yj.begin(), tmp_yj.end()); // Yj
                     message.push_back(idx); // idx;
-                    if (iter_counter < FLAGS_in_iters - 1) {
-                        message.push_back(0);
-                    }
-                    else if(epoch < FLAGS_n_epochs - 1) {
-                        message.push_back(0);
-                    }
-                    else {
-                        message.push_back(1);
-                    }
+                    if (iter_counter < FLAGS_in_iters - 1 || epoch < FLAGS_n_epochs - 1) message.push_back(0);
+                    else message.push_back(1);
+                    
                     // send messages to workers
-                    // printf("master send message to worker %d \n", i);
                     MPI_Send(&message[0], model->rank * 2 + 2, MPI_DOUBLE, i, 102, MPI_COMM_WORLD);
-                    // printf("master send down\n");
                 }
                 
                 // Receive info(gradXi, gradYj, idx) and update(ApplyGradient)
                 std::vector<double> info(model->rank * 2 + 1, 0);
                 if (FLAGS_Asy){
-                    // printf("master start to receive\n");
                     MPI_Probe(MPI_ANY_SOURCE, 101, MPI_COMM_WORLD, &status);    
                     int taskid = status.MPI_SOURCE;
-                    // printf("master receive from worker %d \n", taskid);
                     MPI_Recv(&info[0], model->rank * 2 + 1, MPI_DOUBLE, taskid, 101, MPI_COMM_WORLD, &status);
-                    // printf("master receice down\n");
                     
                     // Prase updaterd_Xi_Yj(Xi, Yj, idx);
                     // convert vector to mat
@@ -94,12 +83,9 @@ public:
                 }
                 else{
                     for (int iter = 0; iter < FLAGS_num_workers; iter++){
-                        // printf("master start to receive\n");
                         MPI_Probe(MPI_ANY_SOURCE, 101, MPI_COMM_WORLD, &status);    
                         int taskid = status.MPI_SOURCE;
-                        // printf("master receive from worker %d \n", taskid);
                         MPI_Recv(&info[0], model->rank * 2 + 1, MPI_DOUBLE, taskid, 101, MPI_COMM_WORLD, &status);
-                        // printf("master receice down\n");
 
                         std::vector<double> gradXi_tmp(info.begin(), info.begin() + model->rank);
                         std::vector<double> gradYj_tmp(info.begin() + model->rank, info.begin() + model->rank * 2);
