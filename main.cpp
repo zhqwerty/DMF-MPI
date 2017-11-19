@@ -15,8 +15,8 @@ int main(int argv, char *argc[]){
     MPI_Init(&argv, &argc);
     MPI_Comm_rank(MPI_COMM_WORLD, &flag);
     MPI_Comm_size(MPI_COMM_WORLD, &tot);
-    const char* inputTrainFile = "/Users/ZMY/Downloads/Matrix/data/Slashdot/train.txt";
-    const char* inputTestFile = "/Users/ZMY/Downloads/Matrix/data/Slashdot/test.txt";
+    const char* inputTrainFile = "/Users/ZMY/data/Slashdot/train.txt";
+    const char* inputTestFile = "/Users/ZMY/data/Slashdot/test.txt";
     int nRows, nCols, nExamples;
     int testRows, testCols, testExamples;
     Example* trainData = load_examples(inputTrainFile, nRows, nCols, nExamples);
