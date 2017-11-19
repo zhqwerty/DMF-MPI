@@ -21,8 +21,9 @@ protected:
     }
 public:
     
-    void PrintOutput(int cur_epoch, double cur_accuracy, double cur_rmse){
-        std::cout << "Epoch: " << cur_epoch << "    Accuracy: " << cur_accuracy << "    RMSE: " << cur_rmse << std::endl;
+    void PrintOutput(int cur_epoch, double cur_accuracy, double cur_rmse, double cur_time){
+        //std::cout << "Epoch: " << cur_epoch << "    Accuracy: " << cur_accuracy << "    RMSE: " << cur_rmse << "    Spend Time: " << cur_time << " s" << std::endl;
+        printf("Epoch: %d   Accuracy: %.4f  RMSE: %.4f  Spend Time: %.2f s \n", cur_epoch, cur_accuracy, cur_rmse, cur_time);
     }
 
     Trainer(Model* model, Example* example){
