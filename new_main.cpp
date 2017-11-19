@@ -32,8 +32,8 @@ int main(int argv, char *argc[]){
         //    for (int i = 0; i < 10; i++) std::cout << trainData[i].row << " " << trainData[i].col << " " << trainData[i].rating << std::endl;
     }
    
-    double lambda = 1e-1;
-    int rank = 30;
+    double lambda = 0.1;
+    int rank = 20;
 
     Model* model = new Model(lambda, nRows, nCols, nExamples, rank);
     Updater* updater = new Updater(model, trainData);
