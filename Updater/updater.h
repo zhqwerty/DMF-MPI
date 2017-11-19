@@ -26,12 +26,13 @@ public:
         model.Y.col(col) -= learning_rate * gradYj;
     }
 
-    std::pair<mat, mat> CalGradient(mat& Xi, mat& Yj){
+    std::pair<mat, mat> CalGradient(mat& Xi, mat& Yj, const int idx){
         std::pair<mat, mat> res;
         mat predict = Xi * Yj;
-        double den = pow(1 + exp(predict(0, 0) * example->rating), 2);
-        mat gradXi = -exp(example->rating * predict(0, 0)) * example->rating * Yj.t() / den + model->lambda * Xi;
-        mat gradYj = -exp(example->rating * predict(0, 0)) * example->rating * Xi.t() / den + model->lambda * Yj;
+        double den = pow(1 + exp(predict(0, 0) * example[idx].rating), 2);
+        mat gradXi = -exp(example[idx].rating * predict(0, 0)) * example[idx].rating *  Yj.t() / den + model->lambda * Xi;
+        mat gradYj = -exp(example[idx].rating * predict(0, 0)) * example[idx].rating *  Xi.t() / den + model->lambda * Yj;
+//        std::cout << "example->rating: " << example->rating << std::endl; 
         res.first = gradXi;
         res.second = gradYj;
         return res;
