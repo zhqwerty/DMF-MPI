@@ -45,7 +45,18 @@ int main(int argv, char *argc[]){
         trainer = new WorkerTrainer(model, trainData);
     }
     TrainStatistics stats = trainer->Train(model, trainData, updater);
-   
+    
+    if (taskid == 0){ 
+        std::ofstream out("./Output/out.txt");
+        if (out.is_open()){
+            printf("write to output file\n");
+            for (int i = 0; i < stats.epoch.size(); i++){
+                out << stats.epoch[i] << " " << stats.accuracy[i] << " " << stats.rmse[i] << " " << stats.time[i] << "\n";
+            }
+            out.close();
+        }
+    }
+
     // Delete new data
     delete model;
     delete updater;
