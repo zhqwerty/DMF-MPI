@@ -4,6 +4,7 @@
 #include <iostream>
 struct TrainStatistics{
     std::vector<int> epoch;
+    std::vector<double> time;
     std::vector<double> accuracy;
     std::vector<double> rmse;
 };
@@ -14,10 +15,11 @@ protected:
     Model* model;
     Example* example;
 
-    void TrackOutput(int cur_epoch, double cur_accuracy, double cur_rmse, TrainStatistics* stats){
+    void TrackOutput(int cur_epoch, double cur_accuracy, double cur_rmse, double cur_time, TrainStatistics* stats){
         stats->epoch.push_back(cur_epoch);
         stats->accuracy.push_back(cur_accuracy);
         stats->rmse.push_back(cur_rmse);
+        stats->time.push_back(cur_time);
     }
 public:
     
