@@ -13,7 +13,7 @@ class MasterTrainer : public Trainer {
 public:
     int FLAGS_n_epochs = 30;
     int FLAGS_in_iters = 1e5;
-    int FLAGS_num_workers = 3;
+    int FLAGS_num_workers = 2;
     bool FLAGS_Asy = false;
     int testExamples;
     Example* testData;
@@ -35,7 +35,7 @@ public:
         Timer timer;
         timer.Tick();
         for (int epoch = 0; epoch < FLAGS_n_epochs; epoch++){
-            double step = FLAGS_Asy ? 0.01 : 1;
+            double step = FLAGS_Asy ? 0.1 : 1;
             double learning_rate = step / std::pow(1+epoch, 0.1);
             //std::cout << "Epoch: " << epoch << std::endl;
 
@@ -114,8 +114,8 @@ public:
             }
             double acc = double(trueNum) / testExamples;
             double rmse = sqrt(error / testExamples);
-            TrackOutput(epoch + 1, acc, rmse, &stats);
             timer.Tock();
+            TrackOutput(epoch + 1, acc, rmse, timer.duration, &stats);
             PrintOutput(epoch + 1, acc, rmse, timer.duration);
         }
         return stats;
