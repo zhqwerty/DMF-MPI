@@ -14,7 +14,7 @@ using namespace arma;
 
 int main(int argv, char *argc[]){
     int taskid, numtasks;
-    MPI_Status state;
+    //MPI_Status state;
     MPI_Init(&argv, &argc);
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
@@ -34,7 +34,8 @@ int main(int argv, char *argc[]){
    
     double lambda = 0.1;
     int rank = 20;
-
+    
+    // Train 
     Model* model = new Model(lambda, nRows, nCols, nExamples, rank);
     Updater* updater = new Updater(model, trainData);
     Trainer* trainer = NULL;
@@ -46,6 +47,7 @@ int main(int argv, char *argc[]){
     }
     TrainStatistics stats = trainer->Train(model, trainData, updater);
     
+    //  OutPut File
     if (taskid == 0){ 
         std::ofstream out("./Output/out.txt");
         if (out.is_open()){
