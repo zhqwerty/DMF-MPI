@@ -23,9 +23,10 @@ public:
         
         while (true) { 
             if (flag_break) break;
-            // std::cout << "worker receive from master" << std::endl;
+            //printf("worker %d receive from master\n", taskid);
+            //std::cout << "worker receive from master" << std::endl;
             MPI_Recv(&message[0], model->rank * 2 + 2, MPI_DOUBLE, 0, 102, MPI_COMM_WORLD, &status);
-            // std::cout << "worker receive down" << std::endl;
+            //std::cout << "worker receive down" << std::endl;
           
             // Prase message
             std::vector<double> tmp_xi(message.begin(), message.begin() + model->rank);
