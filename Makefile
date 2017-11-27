@@ -1,3 +1,7 @@
+## [global define]
+project.optimize_flags = -g -O2 -std=c++11
+project.debug := no
+
 ./PHONY: main
 main: mpi_run.cpp ./Example/examples.cpp
 	mpicc -std=c++11 -o mpi_run mpi_run.cpp ./Example/examples.cpp -larmadillo
