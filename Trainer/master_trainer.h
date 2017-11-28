@@ -12,8 +12,9 @@ using namespace arma;
 class MasterTrainer : public Trainer {
 public:
     int FLAGS_n_epochs = 30;
-    int FLAGS_in_iters = 1e5;
-    int FLAGS_num_workers = 2;
+    int FLAGS_in_iters = 1e4;
+    int FLAGS_num_workers = 8;
+    int FLAGS_max_delay = 4;
     bool FLAGS_Asy = true;
     int testExamples;
     Example* testData;
@@ -38,7 +39,7 @@ public:
         Timer timer;
         timer.Tick();
         for (int epoch = 0; epoch < FLAGS_n_epochs; epoch++){
-            double step = FLAGS_Asy ? 1 : 1;
+            double step = FLAGS_Asy ? 1 : 10;
             std::vector<int> delay_counter(FLAGS_num_workers, 1);
            
             //double learning_rate = step / std::pow(1+epoch, 0.1);
@@ -63,27 +64,30 @@ public:
                     else message.push_back(1);
                     
                     // send messages to workers
-                    if (cur_received_workers[i] == 0) delay_counter[i] += 1;
+                    if (cur_received_workers[i] == 0){
+                        delay_counter[i] += 1;
+                    }
                     else{ 
                         MPI_Send(&message[0], model->rank * 2 + 2, MPI_DOUBLE, i + 1, 102, MPI_COMM_WORLD);
                         //std::cout << "Sent to worker: " << i + 1 << std::endl;
                     }
                 }
                 
+                cur_received_workers.assign(FLAGS_num_workers, 0);   // clear receive list
                 // Receive info(gradXi, gradYj, idx) and update(ApplyGradient)
                 std::vector<double> info(model->rank * 2 + 1, 0);
                 int cur_worker_size = 0;
                 if (FLAGS_Asy){
                     bool flag_receive = true;
                     while (flag_receive){
-                        cur_received_workers.assign(FLAGS_num_workers, 0);   // clear receive list;
 
                         MPI_Probe(MPI_ANY_SOURCE, 101, MPI_COMM_WORLD, &status);    
                         int taskid = status.MPI_SOURCE;
                         //std::cout << "Receive taskid: " << taskid << std::endl;
                         MPI_Recv(&info[0], model->rank * 2 + 1, MPI_DOUBLE, taskid, 101, MPI_COMM_WORLD, &status);
-                    
+
                         cur_received_workers[taskid - 1] = 1; // set reveiced worker to be 1;
+                        delay_counter[taskid - 1] = 1;
                         cur_worker_size += 1;
 
                         // Prase updaterd_Xi_Yj(Xi, Yj, idx);
@@ -102,7 +106,19 @@ public:
                         
                         flag_receive = false;
                         //std::cout << "cur_worker_size: " << cur_worker_size << std::endl;
-                        if (cur_worker_size < FLAGS_num_workers && epoch == FLAGS_n_epochs - 1 && iter_counter == FLAGS_in_iters - 1) flag_receive = true;
+                        
+                        // Bounded Delay   max_delay = 1  => SYN; max_delay = inf => ASY.
+                        if (max_element(delay_counter) > FLAGS_max_delay && iter_counter < FLAGS_in_iters - 1 && epoch < FLAGS_n_epochs - 1){
+                            //std::cout << " delay " << std::endl;
+                            flag_receive = true;
+                        }
+                        // Delay for last iteration
+                        if (cur_worker_size < FLAGS_num_workers && epoch == FLAGS_n_epochs - 1 && iter_counter == FLAGS_in_iters - 1){ 
+                            //std::cout << "2222" << std::endl;
+                            flag_receive = true;
+                        }
+                        //std::cout  << "max_element: " << max_element(delay_counter) << "    delay_counter : " << std::endl;
+                        //printVec(delay_counter);
                     }
                 }
                 else{
