@@ -19,8 +19,8 @@ int main(int argv, char *argc[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
  
-    const char* inputTrainFile = "/Users/ZMY/data/Slashdot/train.txt";
-    const char* inputTestFile = "/Users/ZMY/data/Slashdot/test.txt";
+    const char* inputTrainFile = "/home/han/data/Slashdot/train.txt";
+    const char* inputTestFile = "/home/han/data/Slashdot/test.txt";
     int nRows, nCols, nExamples;
     int testRows, testCols, testExamples;
     Example* trainData = load_examples(inputTrainFile, nRows, nCols, nExamples);
