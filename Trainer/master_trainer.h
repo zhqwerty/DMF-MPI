@@ -11,10 +11,10 @@ using namespace arma;
 
 class MasterTrainer : public Trainer {
 public:
-    int FLAGS_n_epochs = 30;
+    int FLAGS_n_epochs = 300;
     int FLAGS_in_iters = 1e4;
     int FLAGS_num_workers = 8;
-    int FLAGS_max_delay = 4;
+    int FLAGS_max_delay = 3;
     bool FLAGS_Asy = true;
     int testExamples;
     Example* testData;
@@ -31,7 +31,7 @@ public:
         Model& master_model = *model;
         // Train.
         int flag_asy = FLAGS_Asy ? 1 : 0;
-        printf("Number of Workers: %d,   FLAGS_Asy: %d\n", FLAGS_num_workers, flag_asy);
+        printf("Number of Workers: %d,   FLAGS_Asy: %d,    Bounded Delay: %d \n", FLAGS_num_workers, flag_asy, FLAGS_max_delay);
         std::cout << "Start Training" << std::endl;
         
         std::vector<int> cur_received_workers(FLAGS_num_workers, 1);
@@ -39,7 +39,7 @@ public:
         Timer timer;
         timer.Tick();
         for (int epoch = 0; epoch < FLAGS_n_epochs; epoch++){
-            double step = FLAGS_Asy ? 1 : 10;
+            double step = FLAGS_Asy ? 1 : 1;
             std::vector<int> delay_counter(FLAGS_num_workers, 1);
            
             //double learning_rate = step / std::pow(1+epoch, 0.1);
@@ -60,7 +60,6 @@ public:
                     message.insert(message.end(), tmp_yj.begin(), tmp_yj.end()); // Yj
                     message.push_back(idx); // idx;
                     if (iter_counter < FLAGS_in_iters - 1 || epoch < FLAGS_n_epochs - 1) message.push_back(0);
-                    else if (iter_counter == FLAGS_in_iters - 1 && epoch == FLAGS_n_epochs - 1) message.push_back(1);
                     else message.push_back(1);
                     
                     // send messages to workers
@@ -73,9 +72,9 @@ public:
                     }
                 }
                 
-                cur_received_workers.assign(FLAGS_num_workers, 0);   // clear receive list
                 // Receive info(gradXi, gradYj, idx) and update(ApplyGradient)
                 std::vector<double> info(model->rank * 2 + 1, 0);
+                cur_received_workers.assign(FLAGS_num_workers, 0);   // clear receive list
                 int cur_worker_size = 0;
                 if (FLAGS_Asy){
                     bool flag_receive = true;
@@ -112,9 +111,8 @@ public:
                             //std::cout << " delay " << std::endl;
                             flag_receive = true;
                         }
-                        // Delay for last iteration
-                        if (cur_worker_size < FLAGS_num_workers && epoch == FLAGS_n_epochs - 1 && iter_counter == FLAGS_in_iters - 1){ 
-                            //std::cout << "2222" << std::endl;
+                        // Delay for last 2 iteration, Receive all workers at last 2 iteration and sent flag_break to all workers at last iteration
+                        if (cur_worker_size < FLAGS_num_workers && epoch == FLAGS_n_epochs - 1 && iter_counter >= FLAGS_in_iters - 2){ 
                             flag_receive = true;
                         }
                         //std::cout  << "max_element: " << max_element(delay_counter) << "    delay_counter : " << std::endl;
