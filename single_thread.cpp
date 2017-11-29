@@ -11,7 +11,7 @@
 using namespace arma;
 
 int main(int argv, char *argc[]){
-    const char* inputFile = "/Users/ZMY/data/Slashdot/slashdot.txt";
+    const char* inputFile = "/home/han/data/Slashdot/slashdot.txt";
     int nRows, nCols, nExamples;
     Example* examples = load_examples(inputFile, nRows, nCols, nExamples);
     
